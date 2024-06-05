@@ -72,8 +72,7 @@ def SDPRm_gibbs(Y,X1,X2, beta_margin3, N3, rho, idx1_shared, idx2_shared,idx3_sh
     poster_mean2 = np.mean(trace['beta2'][burn:mcmc_samples], axis=0)
     poster_mean3 = np.mean(trace['beta3'][burn:mcmc_samples], axis=0)
     
-    print('h2_1: ' + str(np.median(trace['h2_1'])) + ' h2_2: ' + str(np.median(trace['h2_2'])) + ' h2_3: ' + str(np.median(trace['h2_3'])) \
-	  + ' max_beta1: ' + str(np.max(poster_mean1)) + ' max_beta2: ' + str(np.max(poster_mean2)))
+    print('h2_1: ' + str(np.median(trace['h2_1'])) + ' h2_2: ' + str(np.median(trace['h2_2'])) + ' h2_3: ' + str(np.median(trace['h2_3']))  + ' max_beta1: ' + str(np.max(poster_mean1)) + ' max_beta2: ' + str(np.max(poster_mean2)) + ' max_beta3: ' + str(np.max(poster_mean3)))
 
     print(state['pi_pop'])
 
@@ -85,7 +84,7 @@ def pipeline(args):
 
     # sanity check
 
-    N1 = args.N1; N2 = args.N2
+    N3 = args.N3
 
     print('Load summary statistics from {}'.format(args.ss1))
     ss1 = pd.read_table(args.ss1)
