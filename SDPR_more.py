@@ -11,27 +11,28 @@ import sys, util
 import pandas as pd
 
 
-def SDPRX_gibbs(Y,X1,X2, beta_margin3, N3, rho, idx1_shared, idx2_shared,idx3_shared, ld_boundaries1, ld_boundaries2,ld_boundaries3, ref_ld_mat1, ref_ld_mat2, ref_ld_mat3, 
+def SDPRm_gibbs(Y,X1,X2, beta_margin3, N3, rho, idx1_shared, idx2_shared,idx3_shared, ld_boundaries3, ref_ld_mat3, 
                 mcmc_samples, burn, max_cluster, n_threads, force_shared, VS=True):
     M = [1, 1000, 1000, 1000]
     if force_shared:
         print("Forcing shared effect sizes.\n")
         M = [1, 10, 10, 1000]
-    trace = {'alpha':[], 'num_cluster':[], 'beta1':np.zeros(shape=(mcmc_samples, len(beta_margin1))),
-        'beta2':np.zeros(shape=(mcmc_samples, len(beta_margin2))),
+    trace = {'alpha':[], 'num_cluster':[], 'beta1':np.zeros(shape=(mcmc_samples, len(Y))),
+        'beta2':np.zeros(shape=(mcmc_samples, len(Y))),
+	'beta3':np.zeros(shape=(mcmc_samples, len(beta_margin3))),
         'suffstats':[], 'h2_1':[], 'h2_2':[]}
 
     # initialize
-    state = gibbs.initial_state(data1=beta_margin1, data2=beta_margin2, idx1_shared=idx1_shared, idx2_shared=idx2_shared, ld_boundaries1=ld_boundaries1, ld_boundaries2=ld_boundaries2, M=M, N1=N1, N2=N2, a0k=.5, b0k=.5)
+    state = gibbs.initial_state(Y=Y,data1=X1,data2=X2, data3=beta_margin3, idx1_shared=idx1_shared, idx2_shared=idx2_shared, ld_boundaries3=ld_boundaries3, M=M, N1=N1, N2=N2, a0k=.5, b0k=.5)
     state['suffstats'] = gibbs.update_suffstats(state)
     state['cluster_var'] = gibbs.sample_sigma2(state, rho=rho, VS=True)
     if force_shared:
         state['pi_pop'][1] = 0; state['pi_pop'][2] = 0
     
     state['a'] = 0.1; state['c'] = 1
-    state['A'] = [(Y-stats['aW']).transpose()]
-    state['B1'] = [np.dot(np.transpose(stats['X1'])[j], state['X1'][j]) for j in range(len(ld_boundaries1))]
-    state['B2'] = [np.dot(np.transpose(stats['X2'])[j], state['X2'][j]) for j in range(len(ld_boundaries2))]
+    state['A'] = [(Y-state['aW']).transpose()]
+    state['B1'] = [np.dot(np.transpose(stats['data1'])[j], state['data1'][j]) for j in range(len(state['Y']))]
+    state['B2'] = [np.dot(np.transpose(stats['data2'])[j], state['data2'][j]) for j in range(len(state['Y']))]
     state['A3'] = [np.linalg.solve(ref_ld_mat3[j]+state['a3']*np.identity(ref_ld_mat3[j].shape[0]), ref_ld_mat3[j]) for j in range(len(ld_boundaries3))]
     state['B3'] = [np.dot(ref_ld_mat3[j], state['A3'][j]) for j in range(len(ld_boundaries3))]
     state['C'] = [np.dot(np.transpose(state['X1'])[j],state['X2'][j] for j in range(len(state['Y']))]
